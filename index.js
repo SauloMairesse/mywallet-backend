@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 import { MongoClient } from 'mongodb'
 import {v4 as uuid} from 'uuid'
 import bcrypt from 'bcrypt'
-
+import dayjs from 'dayjs'
 //express 
 const app = express()
 app.use(cors())
@@ -31,11 +31,12 @@ dotenv.config()
 app.post('/sing-in', async (req, res) => {
     const { email, password } = req.body;
     try{
-        const user = await database.collection('users').findOne({ email }); //para pegar o _id
+        const user = await database.collection('users').findOne({ email });
         if(user && bcrypt.compareSync(password, user.password)){
             console.log(chalk.bold.green('deu certo login'))
             const token = uuid()
-            const config = {userId: user._id,
+            const config = {name: user.name,
+                            userId: user._id,
                             token }
             console.log('enviando...\n',config)
             await database.collection('sessions').insertOne(config)
@@ -59,6 +60,60 @@ app.post('/sing-up', async (req, res) => {
         res.sendStatus(201)
     } catch (err){
         console.log(chalk.bold.red('erro sing-up\n',err))
+        res.sendStatus(500)
+    }
+} )
+
+app.post('/output', async (req, res) => {
+    const {value, description} = req.body
+    const {user} = req.headers 
+    const output = {type: 'output',
+                    user: user,
+                    data: dayjs().format('DD/MM'),
+                    value: value,
+                    description: description}
+    try{
+        await database.collection("transference").insertOne(output)
+        console.log('Transferencia OutPut\n',output)
+        res.sendStatus(201)
+    } catch (err){
+        console.log(chalk.bold.red('erro output\n',err))
+        res.sendStatus(500)
+    }
+} )
+
+app.post('/entry', async (req, res) => {
+    const {value, description} = req.body
+    const {user} = req.headers
+    const entry = {type: 'entry',
+                    user: user,
+                    data: dayjs().format('DD/MM'),
+                    value: value,
+                    description: description}
+    try{
+        await database.collection("transference").insertOne(entry)
+        console.log('Transferencia Entry\n',entry)
+        res.sendStatus(201)
+    } catch (err){
+        console.log(chalk.bold.red('erro entry\n',err))
+        res.sendStatus(500)
+    }
+} )
+
+app.get('/transference', async (req, res) => {
+    const {value, description} = req.body
+    const {user} = req.headers
+    const entry = {type: 'entry',
+                    user: user,
+                    data: dayjs().format('DD/MM'),
+                    value: value,
+                    description: description}
+    try{
+        await database.collection("transference").insertOne(entry)
+        console.log('Transferencia Entry\n',entry)
+        res.sendStatus(201)
+    } catch (err){
+        console.log(chalk.bold.red('erro entry\n',err))
         res.sendStatus(500)
     }
 } )
