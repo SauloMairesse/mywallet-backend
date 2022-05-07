@@ -3,6 +3,8 @@ import cors from 'cors'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import { MongoClient } from 'mongodb'
+import {v4 as uuid} from 'uuid'
+import bcrypt from 'bcrypt'
 
 //express 
 const app = express()
@@ -11,6 +13,7 @@ app.use(json())
 app.listen(5000, () => {
     console.log(chalk.bold.green('--------------------------\nExpress:UOl online : porta 5000'))
 })
+
 //mongo
 let database = null
 const mongoClient = new MongoClient('mongodb://127.0.0.1:27017')
@@ -20,26 +23,42 @@ promise.then( () => {
     database = mongoClient.db('MyWallet')
 } )
 promise.catch(e => console.log(chalk.bold.red('Deu ruim conectar no Mongo',e)))
+
 //dotenv
 dotenv.config()
 
-// app.post('/login', async (res, req) => {
-//     const loginUSER = req.body
-//     try{
-//         res.send('aqui ta tudo certo')
-//     } catch (err){
-//         console.log(chalk.bold.red('erro Get\n',err))
-//         res.status(500).send('Deu Ruim')
-//     }
-// } )
-
-app.post('/register', async (res, req) => {
-    const registerUSER = req.body
+//codigo
+app.post('/sing-in', async (req, res) => {
+    const { email, password } = req.body;
     try{
-        await database.collection("register").insertOne(registerUSER)
-        res.send(() => alert('Deu certo aqui boy'))
+        const user = await database.collection('users').findOne({ email }); //para pegar o _id
+        if(user && bcrypt.compareSync(password, user.password)){
+            console.log(chalk.bold.green('deu certo login'))
+            const token = uuid()
+            const config = {userId: user._id,
+                            token }
+            console.log('enviando...\n',config)
+            await database.collection('sessions').insertOne(config)
+            res.status(201).send(config)
+            return
+        }} catch (err){ 
+        console.log(chalk.bold.red('erro sing-in\n',err))
+        res.sendStatus(500)
+    }
+} )
+
+app.post('/sing-up', async (req, res) => {
+    const {name, email, password} = req.body
+    const passwordHash = bcrypt.hashSync(password,10)
+    const user = {name: name,
+                    email: email, 
+                    password: passwordHash}
+    try{
+        await database.collection("users").insertOne(user)
+        console.log('Registro Feito e senha criptografada\n',user)
+        res.sendStatus(201)
     } catch (err){
-        console.log(chalk.bold.red('erro Get\n',err))
-        res.status(500).send('Deu Ruim')
+        console.log(chalk.bold.red('erro sing-up\n',err))
+        res.sendStatus(500)
     }
 } )
