@@ -69,8 +69,8 @@ app.post('/output', async (req, res) => {
     const {user} = req.headers 
     const output = {type: 'output',
                     user: user,
-                    data: dayjs().format('DD/MM'),
-                    value: value,
+                    date: dayjs().format('DD/MM'),
+                    value: -value,
                     description: description}
     try{
         await database.collection("transference").insertOne(output)
@@ -87,7 +87,7 @@ app.post('/entry', async (req, res) => {
     const {user} = req.headers
     const entry = {type: 'entry',
                     user: user,
-                    data: dayjs().format('DD/MM'),
+                    date: dayjs().format('DD/MM'),
                     value: value,
                     description: description}
     try{
@@ -101,19 +101,14 @@ app.post('/entry', async (req, res) => {
 } )
 
 app.get('/transference', async (req, res) => {
-    const {value, description} = req.body
     const {user} = req.headers
-    const entry = {type: 'entry',
-                    user: user,
-                    data: dayjs().format('DD/MM'),
-                    value: value,
-                    description: description}
     try{
-        await database.collection("transference").insertOne(entry)
-        console.log('Transferencia Entry\n',entry)
-        res.sendStatus(201)
+        const transferHistory = await database.collection("transference").find().toArray()
+        const userHistory = transferHistory.filter( transfer => transfer.user === user ) 
+        console.log('usuario Transferencia\n', userHistory)
+        res.status(201).send(userHistory)
     } catch (err){
-        console.log(chalk.bold.red('erro entry\n',err))
+        console.log(chalk.bold.red('erro get Transference\n',err))
         res.sendStatus(500)
     }
 } )
