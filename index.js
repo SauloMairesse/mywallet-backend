@@ -2,11 +2,13 @@ import express, {json} from 'express'
 import cors from 'cors'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
-import { MongoClient } from 'mongodb'
 import {v4 as uuid} from 'uuid'
 import bcrypt from 'bcrypt'
 import dayjs from 'dayjs'
 import joi from 'joi'
+
+//mongo
+import database from './database.js'
 
 //express 
 const app = express()
@@ -36,16 +38,6 @@ const transferenceJOI = joi.object({
     value: joi.required(),
     description: joi.string().required()
 });
-
-//mongo
-let database = null
-const mongoClient = new MongoClient('mongodb://127.0.0.1:27017')
-const promise = mongoClient.connect()
-promise.then( () => {
-    console.log(chalk.bold.green('Mongo: successful connection\n--------------------------'))
-    database = mongoClient.db('MyWallet')
-} )
-promise.catch(e => console.log(chalk.bold.red('Deu ruim conectar no Mongo',e)))
 
 //dotenv
 dotenv.config()
