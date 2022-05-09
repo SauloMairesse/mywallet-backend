@@ -183,3 +183,19 @@ app.post('/output', async (req, res) => {
         res.sendStatus(500)
     }
 } )
+
+app.post('/logout', async (req, res) => {
+    const {token} = req.body
+    try{
+        const logout = await database.collection("sessions").findOne(token)
+        console.log(logout)
+        if(logout){
+            await database.collection("sessions").deleteOne(logout)
+            console.log('Logout user')
+            res.sendStatus(201)
+        }
+    } catch (err){
+        console.log(chalk.bold.red('erro logout\n',err))
+        res.sendStatus(500)
+    }
+} )
