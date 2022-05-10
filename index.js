@@ -10,16 +10,16 @@ import { getTransference, postEntry, postLogout, postOutput, postSingIn, postSin
 //mongo
 import database from './database.js'
 
+//dotenv
+dotenv.config()
+
 //express 
 const app = express()
 app.use(cors())
 app.use(json())
-app.listen(5000, () => {
+app.listen(process.env.PORT, () => {
     console.log(chalk.bold.green('Express:UOl online : porta 5000'))
 })
-
-//dotenv
-dotenv.config()
 
 //codigo
 app.post('/sing-in', postSingIn)
